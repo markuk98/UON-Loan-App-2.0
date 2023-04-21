@@ -7,4 +7,8 @@
     <RootNamespace>UON_Loan_App_2._0</RootNamespace>
   </PropertyGroup>
 
+  <ItemGroup>
+    <PackageReference Include="SQLite" Version="3.13.0" />
+  </ItemGroup>
+
 </Project>
