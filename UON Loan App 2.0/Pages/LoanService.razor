@@ -1,49 +1,74 @@
-﻿@page "/LoanService"
-@using System.Data.SQLite;
-@using LoanAppDataAccess
+﻿
+@page "/loanservice"
+@inject System.Data.SQLite.SQLiteConnection DbConnection
+@using MyProject.Models
 
 <h1>Loan Service</h1>
 
-@if (loans.Count == 0)
-{
-    <p>No loans found.</p>
-}
-else
-{
-    <table>
-        <thead>
+<table class="table">
+    <thead>
+        <tr>
+            <th>Id</th>
+            <th>Device</th>
+            <th>Customer</th>
+            <th>Assigned</th>
+            <th>Created By</th>
+            <th>Collection Date</th>
+            <th>Return Date</th>
+            <th>Notes</th>
+            <th>Delivery</th>
+            <th>Collected</th>
+            <th>Returned</th>
+            <th>Confirmation Sent</th>
+            <th>Collection Point</th>
+            <th>Released By</th>
+            <th>Returned By</th>
+            <th>Creation Date</th>
+            <th>Reminder 1</th>
+            <th>Reminder 2</th>
+            <th>Reminder Sent By</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var loan in Loans)
+        {
             <tr>
-                <th>ID</th>
-                <th>Name</th>
-                <th>Amount</th>
-                <th>Date</th>
+                <td>@loan.Id</td>
+                <td>@loan.Device</td>
+                <td>@loan.Customer</td>
+                <td>@loan.Assigned</td>
+                <td>@loan.CreatedBy</td>
+                <td>@loan.CollectionDate.ToShortDateString()</td>
+                <td>@loan.ReturnDate.ToShortDateString()</td>
+                <td>@loan.Notes</td>
+                <td>@(loan.Delivery ? "Yes" : "No")</td>
+                <td>@(loan.Collected.HasValue ? loan.Collected.Value.ToShortDateString() : "-")</td>
+                <td>@(loan.Returned.HasValue ? loan.Returned.Value.ToShortDateString() : "-")</td>
+                <td>@(loan.ConfirmationSent.HasValue ? loan.ConfirmationSent.Value.ToShortDateString() : "-")</td>
+                <td>@loan.CollectionPoint</td>
+                <td>@loan.ReleasedBy</td>
+                <td>@loan.ReturnedBy</td>
+                <td>@loan.CreationDate.ToShortDateString()</td>
+                <td>@loan.Reminder1</td>
+                <td>@loan.Reminder2</td>
+                <td>@loan.ReminderSentBy</td>
             </tr>
-        </thead>
-        <tbody>
-            @foreach (var loan in loans)
-            {
-                <tr>
-                    <td>@loan.Id</td>
-                    <td>@loan.Name</td>
-                    <td>@loan.Amount</td>
-                    <td>@loan.Date.ToShortDateString()</td>
-                </tr>
-            }
-        </tbody>
-    </table>
-}
+        }
+    </tbody>
+</table>
 
 @code {
-    List<Loan> loans = new List<Loan>();
+    private List<Loan> loans = new List<Loan>();
 
     protected override void OnInitialized()
     {
-        var connectionString = "Data Source=LoanAppData.db3";
-        using (var connection = new SQLiteConnection(connectionString))
+        base.OnInitialized();
+
+        using (var connection = SqliteService.GetConnection())
         {
             connection.Open();
 
-            var command = new SQLiteCommand("SELECT * FROM Loans", connection);
+            var command = new SQLiteCommand("SELECT * FROM LoanData", connection);
 
             using (var reader = command.ExecuteReader())
             {
@@ -52,10 +77,26 @@ else
                     var loan = new Loan
                         {
                             Id = reader.GetInt32(0),
-                            Name = reader.GetString(1),
-                            Amount = reader.GetDecimal(2),
-                            Date = reader.GetDateTime(3)
+                            Device = reader.GetInt32(1),
+                            Customer = reader.GetInt32(2),
+                            Assigned = reader.GetInt32(3),
+                            CreatedBy = reader.GetString(4),
+                            CollectionDate = reader.IsDBNull(5) ? null : (DateTime?)reader.GetDateTime(5),
+                            ReturnDate = reader.IsDBNull(6) ? null : (DateTime?)reader.GetDateTime(6),
+                            Notes = reader.GetString(7),
+                            Delivery = reader.GetBoolean(8),
+                            Collected = reader.IsDBNull(9) ? null : (DateTime?)reader.GetDateTime(9),
+                            Returned = reader.IsDBNull(10) ? null : (DateTime?)reader.GetDateTime(10),
+                            ConfirmationSent = reader.IsDBNull(11) ? null : (DateTime?)reader.GetDateTime(11),
+                            CollectionPoint = reader.IsDBNull(12) ? null : (int?)reader.GetInt32(12),
+                            ReleasedBy = reader.IsDBNull(13) ? null : reader.GetString(13),
+                            ReturnedBy = reader.IsDBNull(14) ? null : reader.GetString(14),
+                            CreationDate = reader.GetDateTime(15),
+                            Reminder1 = reader.IsDBNull(16) ? null : reader.GetString(16),
+                            Reminder2 = reader.IsDBNull(17) ? null : reader.GetString(17),
+                            ReminderSentBy = reader.IsDBNull(18) ? null : reader.GetString(18)
                         };
+
                     loans.Add(loan);
                 }
             }
