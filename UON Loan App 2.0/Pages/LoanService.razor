@@ -1,0 +1,50 @@
+﻿@page "/loan-service"
+
+<h1>Loan Service</h1>
+
+@if (loans != null)
+{
+    <table>
+        <thead>
+            <tr>
+                <th>Loan ID</th>
+                <th>Customer Name</th>
+                <th>Loan Amount</th>
+                <th>Interest Rate</th>
+                <th>Loan Date</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var loan in loans)
+            {
+                <tr>
+                    <td>@loan.LoanId</td>
+                    <td>@loan.CustomerName</td>
+                    <td>@loan.LoanAmount</td>
+                    <td>@loan.InterestRate</td>
+                    <td>@loan.LoanDate</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+else
+{
+    <p>No loans found.</p>
+}
+
+@code {
+    private List<Loan> loans;
+
+    protected override async Task OnInitializedAsync()
+    {
+        string connectionString = "Data Source=LoanAppData.db3";
+        using (var connection = new SQLiteConnection(connectionString))
+        {
+            await connection.OpenAsync();
+
+            string query = "SELECT LoanId, CustomerName, LoanAmount, InterestRate, LoanDate FROM Loans";
+            loans = await connection.QueryAsync<Loan>(query).ToListAsync();
+        }
+    }
+}
